@@ -13,28 +13,37 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
+      // Respond with an error if email or password fields are empty
       return res.status(400).json({ error: "Email and password cannot be empty" });
   }
 
   try {
+      // Attempt to find the user by email
       const user = await User.findByEmail(email);
       if (!user) {
+          // Respond with an error if no user is found
           return res.status(401).json({ error: "User not found" });
       }
 
+      // Check if the provided password matches the stored password
       if (user.password !== password) {
+          // Respond with an error if the passwords do not match
           return res.status(401).json({ error: "Incorrect password" });
       }
 
+      // Define the payload for the JWT, including the user's ID and email
       const payload = {
           user_id: user.id,
           email: user.email
       };
 
+      // Sign the JWT with the secret key and set it to expire in 1 hour
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      res.status(200).json({ token });
+      // Send the token and user_id back to the client
+      res.status(200).json({ token, user_id: user.id });
   } catch (error) {
+      // Handle any other errors that may occur
       res.status(500).json({ error: error.message });
   }
 };
@@ -126,6 +135,7 @@ exports.deleteForum = async (req, res) => {
 exports.addMessage = async (req, res) => {
   try {
     const forum_id = req.params.forumId;
+    console.log(forum_id);
     const { user_id, content } = req.body;
     const message = new Message(forum_id, user_id, content);
     const newMessage = await message.save();

@@ -7,7 +7,9 @@ import Comment from '../assets/comment';
 function Forums() {
     const [forums, setForums] = useState([]);
     const [newForumName, setNewForumName] = useState('');
+    const [newForumDesc, setNewForumDesc] = useState('');
     const [loading, setLoading] = useState(false);
+    const userId = localStorage.getItem('userId');  // Assuming the user's ID is stored in localStorage
 
     useEffect(() => {
         fetchForums();
@@ -31,21 +33,25 @@ function Forums() {
 
     const handleAddForum = async (event) => {
         event.preventDefault();
-        if (!newForumName) return;
+        if (!newForumName || !newForumDesc) return;
 
         try {
             const response = await axios.post('http://localhost:4010/api/user/add-forum', {
-                name: newForumName
+                title: newForumName,
+                description: newForumDesc,
+                user_id: userId
             }, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.data) {  // Check response has data
-                setForums([...forums, response.data]); // Add new forum to list
-                setNewForumName(''); // Clear form field
+            if (response.data) { 
+                setForums([...forums, response.data]);
+                setNewForumName('');
+                setNewForumDesc('');
             }
+            fetchForums();
         } catch (error) {
             console.error("Failed to add forum:", error);
         }
@@ -53,21 +59,23 @@ function Forums() {
 
     return (
         <div>
-            <h1 className="text-xl font-bold">Forums</h1>
+            <h1 className="text-2xl font-bold mb-4">Forums</h1>
             {loading ? (
                 <p>Loading forums...</p>
             ) : (
-                <ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {forums.map(forum => (
-                        <li key={forum.id}>
-                            {/* <Link to={`/forums/${forum.id}`}>{forum.name}</Link> */}
-                            <div className='flex gap-4'>
-                              {forum.title}
-                              <Comment id={forum.id} />
+                        <div key={forum.id} className="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold">{forum.title}</h3>
+                                <p className="text-gray-600">{forum.description}</p>
                             </div>
-                        </li>
+                            <div className="ml-4">
+                                <Comment id={forum.id} />
+                            </div>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
             <form onSubmit={handleAddForum}>
                 <input
@@ -75,10 +83,17 @@ function Forums() {
                     value={newForumName}
                     onChange={(e) => setNewForumName(e.target.value)}
                     className="mt-3 block w-full px-4 py-2 border rounded-md shadow-sm"
-                    placeholder="Enter new forum name"
+                    placeholder="Enter new forum title"
+                />
+                <input
+                    type="text"
+                    value={newForumDesc}
+                    onChange={(e) => setNewForumDesc(e.target.value)}
+                    className="mt-3 block w-full px-4 py-2 border rounded-md shadow-sm"
+                    placeholder="Enter new forum description"
                 />
                 <button type="submit" className="mt-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Add Forum
+                    Create Forum
                 </button>
             </form>
         </div>

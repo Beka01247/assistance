@@ -46,23 +46,29 @@ function NaturalDisasters() {
             });
             setDisasters([...disasters, response.data]); // Assuming the backend returns the added disaster
             setNewDisasterName(''); // Reset input after submission
+            // setNewDisasterDesc('');
+            // setNewDisasterDate('');
             fetchDisasters();
         } catch (error) {
-            console.error("Failed to add disaster:", error);
+            console.error("Failed to add disaster ", error);
         }
     };
 
     return (
         <div>
-            <h1 className="text-xl font-bold">Natural Disasters</h1>
+            <h1 className="text-2xl font-bold mb-4">Natural Disasters</h1>
             {loading ? (
                 <p>Loading disasters...</p>
             ) : (
-                <ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {disasters.map(disaster => (
-                        <li key={disaster.id}>{disaster.name}</li>
+                        <div key={disaster.id} className="bg-white rounded-lg shadow-md p-4">
+                            <h3 className="text-lg font-semibold">{disaster.name}</h3>
+                            <p className="text-gray-600">{disaster.description}</p>
+                            <p className="text-sm text-gray-500">{new Date(disaster.date_occurred).toLocaleDateString()}</p>
+                        </div>
                     ))}
-                </ul>
+                </div>
             )}
             <form onSubmit={handleAddDisaster}>
                 <input
