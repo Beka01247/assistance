@@ -26,22 +26,18 @@ exports.login = async (req, res) => {
           return res.status(401).json({ error: "Incorrect password" });
       }
 
-      // Define JWT payload
       const payload = {
           user_id: user.id,
           email: user.email
       };
 
-      // Sign the JWT
       const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-      // Respond with the JWT
       res.status(200).json({ token });
   } catch (error) {
       res.status(500).json({ error: error.message });
   }
 };
-
 
 // natural disasters 
 
@@ -124,8 +120,6 @@ exports.deleteForum = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-
 
 // messages
 
