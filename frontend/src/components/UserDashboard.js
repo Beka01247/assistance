@@ -1,4 +1,3 @@
-// src/components/UserDashboard.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import NaturalDisasters from './NaturalDisasters';
@@ -27,6 +26,9 @@ function UserDashboard() {
                         <Route path="/study-centers" element={<StudyCenters />} />
                         <Route path="/forums" element={<Forums />} />
                     </Routes>
+                </div>
+                <div className="flex justify-center mt-4">  
+                    <a href="/" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Return to Login Page</a>
                 </div>
             </div>
     );

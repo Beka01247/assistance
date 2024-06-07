@@ -27,7 +27,7 @@ function AdminDashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-center">Users</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center mt-4">Users</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {users.map(user => (
@@ -40,6 +40,10 @@ function AdminDashboard() {
             </div>
             </div>
         ))}
+      </div>
+
+      <div className="flex justify-center mt-4">  
+        <a href="/" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Return to Login Page</a>
       </div>
     </div>
   );

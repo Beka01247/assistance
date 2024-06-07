@@ -14,7 +14,12 @@ class Message {
   }
 
   static async findByForumId(forum_id) {
-    let sql = `SELECT * FROM messages WHERE forum_id = ?`;
+    let sql = `
+        SELECT messages.id, messages.content, users.username
+        FROM messages
+        JOIN users ON messages.user_id = users.id
+        WHERE messages.forum_id = ?
+    `;
     const [rows, _] = await db.execute(sql, [forum_id]);
     return rows;
   }

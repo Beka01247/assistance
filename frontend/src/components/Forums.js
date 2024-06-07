@@ -1,4 +1,3 @@
-// src/components/Forums.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -9,7 +8,7 @@ function Forums() {
     const [newForumName, setNewForumName] = useState('');
     const [newForumDesc, setNewForumDesc] = useState('');
     const [loading, setLoading] = useState(false);
-    const userId = localStorage.getItem('userId');  // Assuming the user's ID is stored in localStorage
+    const userId = localStorage.getItem('userId'); 
 
     useEffect(() => {
         fetchForums();
@@ -23,7 +22,7 @@ function Forums() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            setForums(response.data);  // Assuming the data is an array of forums
+            setForums(response.data);
             setLoading(false);
         } catch (error) {
             console.error("Failed to fetch forums:", error);
@@ -59,7 +58,7 @@ function Forums() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold mb-4">Forums</h1>
+            <h1 className="text-2xl font-bold mb-4 text-center">Forums</h1>
             {loading ? (
                 <p>Loading forums...</p>
             ) : (
@@ -77,6 +76,7 @@ function Forums() {
                     ))}
                 </div>
             )}
+            <h1 className="text-2xl font-bold mb-4 mt-4 text-center">Add forum</h1>
             <form onSubmit={handleAddForum}>
                 <input
                     type="text"
@@ -92,9 +92,11 @@ function Forums() {
                     className="mt-3 block w-full px-4 py-2 border rounded-md shadow-sm"
                     placeholder="Enter new forum description"
                 />
-                <button type="submit" className="mt-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Create Forum
-                </button>
+                <div className='w-full flex '>
+                    <button type="submit" className="mt-3 px-4 py-2 text-sm font-medium text-white rounded bg-green-600 hover:bg-green-700 mx-auto">
+                        Create Forum
+                    </button>
+                </div>
             </form>
         </div>
     );

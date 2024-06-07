@@ -5,7 +5,7 @@ import axios from 'axios';
 const Modal = ({ isOpen, onClose, id }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
-    const userId = localStorage.getItem('userId');  // Assuming the user's ID is stored in localStorage
+    const userId = localStorage.getItem('userId'); 
 
     const fetchMessages = async () => {
         try {
@@ -24,11 +24,10 @@ const Modal = ({ isOpen, onClose, id }) => {
         if (isOpen) {
             fetchMessages();
         }
-    }, [id, isOpen]); // Include id and isOpen in the dependency array
+    }, [id, isOpen]);
 
     const handleAddMessage = async (event) => {
       event.preventDefault();
-      // Make sure newMessage is defined and not just filled with whitespace
       if (typeof newMessage === 'undefined' || !newMessage.trim()) return;
   
       try {
@@ -43,9 +42,10 @@ const Modal = ({ isOpen, onClose, id }) => {
               }
           });
           if (response.data) {
-              setMessages([...messages, response.data]);  // Update the message list with the new message
-              setNewMessage('');  // Clear the input field
+              setMessages([...messages, response.data]); 
+              setNewMessage('');  
           }
+          fetchMessages();
       } catch (error) {
       console.error("Failed to add message:", error);
       }
@@ -60,7 +60,7 @@ const Modal = ({ isOpen, onClose, id }) => {
                 {messages.length > 0 ? (
                     messages.map(message => (
                         <li key={message.id}>
-                            <div><strong>User {message.user_id}:</strong> {message.content}</div>
+                            <div><strong>{message.username}:</strong> {message.content}</div>
                         </li>
                     ))
                 ) : (
@@ -71,7 +71,7 @@ const Modal = ({ isOpen, onClose, id }) => {
                     <input
                         type="text"
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}  // Correctly setting newMessage from input
+                        onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Write a message..."
                         className="border p-2 w-full rounded"
                     />
