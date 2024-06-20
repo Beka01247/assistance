@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
+
+.bebas-neue-regular {
+  font-family: "Bebas Neue", sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 700;
+  line-height: 22px !important;
+  transform: scaleY(1.8) !important;
+  text-align: center !important;
+}

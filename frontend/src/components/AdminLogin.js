@@ -1,65 +1,79 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import Logo from "../assets/images/logo.jsx";
+import User from "../assets/images/user.jsx";
+import Password from "../assets/images/password.jsx";
 
 function AdminLogin() {
-    const [login, setLogin] = useState('');
-    const [password, setPassword] = useState('');
-    const navigate = useNavigate();
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        try {
-            const response = await axios.post('http://localhost:4010/api/admin/login', {
-                login: login,
-                password: password
-            }, {
-                headers: {"Content-Type": "application/json"}
-            });
+  const handleSubmit = async (event) => {
+    navigate("/admin");
+    //   event.preventDefault();
+    //   try {
+    //     const response = await axios.post(
+    //       "http://localhost:4010/api/admin/login",
+    //       {
+    //         login: login,
+    //         password: password,
+    //       },
+    //       {
+    //         headers: { "Content-Type": "application/json" },
+    //       }
+    //     );
 
-            const { token } = response.data;
-            if (token) {
-                localStorage.setItem('token', token);
-                navigate('/admin');
-            } else {
-                console.error('Login failed: No token received');
-            }
-        } catch (error) {
-            console.error('Login failed:', error.response ? error.response.data : error);
-        }
-    };
+    //     const { token } = response.data;
+    //     if (token) {
+    //       localStorage.setItem("token", token);
+    //       navigate("/admin");
+    //     } else {
+    //       console.error("Login failed: No token received");
+    //     }
+    //   } catch (error) {
+    //     console.error(
+    //       "Login failed:",
+    //       error.response ? error.response.data : error
+    //     );
+    //   }
+  };
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-            <div className="p-6 bg-white shadow-md rounded">
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Login</label>
-                        <input
-                            type="text"
-                            value={login}
-                            onChange={(e) => setLogin(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-                            required
-                        />
-                    </div>
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
-                            required
-                        />
-                    </div>
-                    <button type="submit" className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-                        Log In
-                    </button>
-                </form>
+  return (
+    <div className="flex flex-col h-screen justify-center items-center">
+      <Logo />
+      <div className="bebas-neue-regular font-bold flex flex-col justify-center items-center w-[146px] h-max mt-3 text-[rgba(225,55,55,1)]">
+        СПАСАТЕЛИ
+      </div>
+      <div className="mt-10">
+        <div className="w-[320px] h-[53px] border-b-[1px]">
+          <span className="text-[rgba(125,143,157,1)]">Логин</span>
+          <div className="flex flex-row w-full ">
+            <input className="w-full" placeholder="admin"></input>
+            <div className="ml-auto mr-2">
+              <User />
             </div>
+          </div>
         </div>
-    );
+      </div>
+      <div className="w-[320px] h-[53px] border-b-[1px] mt-7">
+        <span className="text-[rgba(125,143,157,1)]">Пароль</span>
+        <div className="flex flex-row w-full ">
+          <input className="w-full" placeholder="root"></input>
+          <div className="ml-auto mr-2">
+            <Password />
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={handleSubmit}
+        className="rounded-[39px] bg-[rgba(225,55,55,1)] w-[320px] h-[50px] mt-[32px] text-white"
+      >
+        Войти
+      </button>
+    </div>
+  );
 }
 
 export default AdminLogin;
