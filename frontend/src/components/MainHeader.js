@@ -4,7 +4,7 @@ import Bars from "../assets/images/bars.jsx";
 
 const MainHeader = ({ toggleMenu }) => {
   return (
-    <header className="flex flex-grow items-center bg-white h-[36px] mt-5">
+    <header className="flex flex-grow items-center bg-white h-[36px] mt-5 w-full">
       <button
         onClick={toggleMenu}
         className="flex items-center justify-center p-2 ml-[60px]"

@@ -88,12 +88,12 @@ const ProfileCard = ({ onClose, user }) => {
           </div>
           <div className="flex flex-col gap-4 w-[50%]">
             <button
-              className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full w-full h-14"
+              className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-full w-full h-14"
               onClick={() => navigate("/admin/user-control/activity")}
             >
               Посмотреть активность
             </button>
-            <button className="bg-white text-red-500 border border-red-500 font-semibold py-2 px-4 rounded-full w-full h-14">
+            <button className="bg-white text-[#E13737] border border-[#E13737] font-semibold py-2 px-4 rounded-full w-full h-14">
               Заблокировать
             </button>
           </div>

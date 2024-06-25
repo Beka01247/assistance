@@ -16,7 +16,7 @@ const Chat = ({ name, description, avatarUrl, notifications, setTab }) => {
         <div className="text-gray-500 text-sm">{description}</div>
       </div>
       {notifications > 0 && (
-        <div className="bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center ml-2">
+        <div className="bg-[#E13737] text-white rounded-full h-6 w-6 flex items-center justify-center ml-2">
           {notifications}
         </div>
       )}

@@ -9,7 +9,7 @@ const MessageInput = () => {
         rows="5"
         placeholder="Lorem ipsum dolor sit amet consectetur..."
       ></textarea>
-      <button className="bg-red-500 text-white font-semibold py-2 px-4 rounded-full w-full mt-4">
+      <button className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-full w-full mt-4">
         Отправить
       </button>
     </div>

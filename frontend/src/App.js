@@ -8,6 +8,7 @@ import IncidentModeration from "./components/IncidentModeration/IncidentModerati
 import ModerationChat from "./components/ModerationChat/ModerationChat";
 import ChangePassword from "./components/ChangePassword/ChangePassword";
 import UserActivity from "./components/UserActivity/UserActivity";
+import StudyCenters from "./components/StudyCenters/StudyCenters";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/admin" element={<UserControl />} />
         <Route path="/admin/user-control/activity" element={<UserActivity />} />
         <Route path="/admin/content" element={<ContentControl />} />
+        <Route path="/admin/study-centers" element={<StudyCenters />} />
         <Route path="/admin/notification" element={<CreateNotification />} />
         <Route path="/admin/category-control" element={<CategoryControl />} />
         <Route path="/admin/moderation-chat" element={<ModerationChat />} />

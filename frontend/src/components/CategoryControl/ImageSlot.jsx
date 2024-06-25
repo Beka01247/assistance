@@ -8,7 +8,7 @@ function ImageSlot() {
       onMouseEnter={() => setShowPlus(true)}
       onMouseLeave={() => setShowPlus(false)}
     >
-      {showPlus && <button className="text-red-500 text-4xl">+</button>}
+      {showPlus && <button className="text-[#E13737] text-4xl">+</button>}
     </div>
   );
 }
