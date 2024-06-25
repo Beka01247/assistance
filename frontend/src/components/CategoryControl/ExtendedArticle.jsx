@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import MoreVertical from "./../../assets/images/morevertical";
+import { useNavigate } from "react-router-dom";
 
 const ProfileSection = () => {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -15,6 +16,7 @@ const ProfileSection = () => {
   const handleDelete = () => {
     console.log("Delete");
   };
+  const navigate = useNavigate();
   return (
     <div className="flex items-center p-4">
       <img
@@ -39,7 +41,7 @@ const ProfileSection = () => {
               </li>
               <li
                 className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-center"
-                onClick={handleEdit}
+                onClick={() => navigate("/admin/user-control/activity")}
               >
                 Посмотреть активность
               </li>
