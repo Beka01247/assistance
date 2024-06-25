@@ -15,7 +15,7 @@ export default function Messages() {
   return (
     <div className="p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="p-6 bg-white rounded-lg shadow-md mb-4">
+        <div className="p-6 mb-4">
           <div className="flex flex-wrap">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 py-2 px-7 ml-8">
               {comments.map((comment, index) => (

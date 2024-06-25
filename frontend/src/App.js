@@ -7,6 +7,7 @@ import CategoryControl from "./components/CategoryControl/CategoryControl";
 import IncidentModeration from "./components/IncidentModeration/IncidentModeration";
 import ModerationChat from "./components/ModerationChat/ModerationChat";
 import ChangePassword from "./components/ChangePassword/ChangePassword";
+import UserActivity from "./components/UserActivity/UserActivity";
 
 function App() {
   return (
@@ -14,12 +15,16 @@ function App() {
       <Routes>
         <Route path="/" element={<AdminLogin />} />
         <Route path="/admin" element={<UserControl />} />
-        <Route path="/content" element={<ContentControl />} />
-        <Route path="/notification" element={<CreateNotification />} />
-        <Route path="/category-control" element={<CategoryControl />} />
-        <Route path="/moderation-chat" element={<ModerationChat />} />
-        <Route path="/incident-moderation" element={<IncidentModeration />} />
-        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/admin/user-control/activity" element={<UserActivity />} />
+        <Route path="/admin/content" element={<ContentControl />} />
+        <Route path="/admin/notification" element={<CreateNotification />} />
+        <Route path="/admin/category-control" element={<CategoryControl />} />
+        <Route path="/admin/moderation-chat" element={<ModerationChat />} />
+        <Route
+          path="/admin/incident-moderation"
+          element={<IncidentModeration />}
+        />
+        <Route path="/admin/change-password" element={<ChangePassword />} />
       </Routes>
     </Router>
   );

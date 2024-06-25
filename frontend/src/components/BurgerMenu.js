@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Logo from "../assets/images/logo.jsx";
+import { useNavigate } from "react-router-dom";
 
 const BurgerMenu = ({ isOpen, toggleMenu }) => {
+  const navigate = useNavigate();
   return (
     <>
       {isOpen && (
@@ -16,14 +18,42 @@ const BurgerMenu = ({ isOpen, toggleMenu }) => {
         } transition-transform duration-300`}
       >
         <nav className="flex flex-col items-start ml-4 mt-3">
-          <NavItem className="mb-4" text="Управление контентом" />
-          <NavItem className="mb-4" text="Модерация контента" />
-          <NavItem className="mb-4" text="Оповещения" />
-          <NavItem className="mb-4" text="Управление категориями ситуаций" />
-          <NavItem className="mb-4" text="Модерация поступающих происшествий" />
-          <NavItem className="mb-4" text="Чат с модерацией" />
-          <NavItem className="mb-4" text="Учебные центры" />
-          <NavItem className="mb-4" text="Смена пароля" />
+          <NavItem className="mb-4" text="Управление пользователями" />
+          <NavItem
+            className="mb-4"
+            text="Модерация контента"
+            navigateTo={() => navigate("/admin/content")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Оповещения"
+            navigateTo={() => navigate("/admin/notification")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Управление категориями ситуаций"
+            navigateTo={() => navigate("/admin/category-control")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Модерация поступающих происшествий"
+            navigateTo={() => navigate("/admin/incident-moderation")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Чат с модерацией"
+            navigateTo={() => navigate("/admin/moderation-chat")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Учебные центры"
+            navigateTo={() => navigate("/admin/study-centers")}
+          />
+          <NavItem
+            className="mb-4"
+            text="Смена пароля"
+            navigateTo={() => navigate("/admin/change-password")}
+          />
           <div className="ml-4 flex flex-row items-center mt-auto mb-4">
             <Logo />
             <div className="bebas-neue-regular h-[34px] ml-2 text-[rgba(225,55,55,1)] mt-2">
@@ -36,10 +66,10 @@ const BurgerMenu = ({ isOpen, toggleMenu }) => {
   );
 };
 
-const NavItem = ({ text, className }) => {
+const NavItem = ({ text, className, navigateTo }) => {
   return (
     <a
-      href="#"
+      onClick={navigateTo}
       className={`text-gray-800 py-2 px-4 block hover:bg-gray-100 ${className}`}
     >
       {text}
