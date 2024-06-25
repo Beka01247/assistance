@@ -11,6 +11,7 @@ const router = express.Router();
 router.post("/login", userController.login);
 router.post("/signup", userController.signup);
 router.post("/change-password", userController.changePassword);
+router.post("/upload-avatar", userController.uploadAvatar);
 
 // journal and incidents
 router.get("/incidents", userController.getIncidents);
@@ -37,9 +38,6 @@ router.get("/forums/:forum_id", forumController.forumById);
 router.post("/forums/add-forum", forumController.createForum);
 router.post("/forums/:forumId/add-message", forumController.addMessage);
 router.get("/forums/:forumId/messages", forumController.allMessagesByForum);
-
-// testing
-router.post("/test/need-help");
 
 // study center
 router.get("/study-centers", centerController.getAllCenters);

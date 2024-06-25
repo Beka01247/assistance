@@ -4,6 +4,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const upload = require("../config/upload");
+const fileupload = require("../config/fileupload");
 
 // auth
 
@@ -104,6 +105,39 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+exports.uploadAvatar = (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  fileupload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: err });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const avatarPath = req.file.path;
+
+    try {
+      await db.execute("UPDATE Users SET photo = ? WHERE user_id = ?", [
+        avatarPath,
+        userId,
+      ]);
+
+      res
+        .status(200)
+        .json({ message: "Avatar uploaded successfully", avatar: avatarPath });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+};
+
+// incidents
+
 exports.createIncident = async (req, res) => {
   const { type, latitude, longitude, location, description } = req.body;
   const token = req.headers.authorization.split(" ")[1];
@@ -200,7 +234,6 @@ exports.createChatForIncident = async (req, res) => {
 
     res.status(201).json({
       message: "Chat created and incident updated successfully",
-      chat_id: chatId,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -526,5 +559,43 @@ exports.updateIncidentStatus = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.sendSupportMessage = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  const { chatId, message } = req.body;
+
+  try {
+    const [result] = await db.execute(
+      "INSERT INTO SupportMessages (chat_id, sender_id, message, sent_at) VALUES (?, ?, ?, NOW())",
+      [chatId, userId, message]
+    );
+
+    res.status(201).json({ message: "Message sent successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getSupportChatMessages = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  const chatId = req.params.chatId;
+
+  try {
+    const [rows] = await db.execute(
+      "SELECT * FROM SupportMessages WHERE chat_id = ? ORDER BY sent_at ASC",
+      [chatId]
+    );
+
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

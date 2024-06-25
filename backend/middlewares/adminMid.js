@@ -1,20 +1,32 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const db = require("../config/db"); // Adjust the path as necessary
 
-const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+const verifyAdmin = async (req, res, next) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
 
-    if (!token) {
-        return res.status(403).send('A token is required for authentication');
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const [rows] = await db.execute(
+      "SELECT isAdmin FROM Users WHERE user_id = ?",
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        return res.status(401).send('Invalid Token');
+    const user = rows[0];
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ message: "Access denied, admin only" });
     }
+
+    next();
+  } catch (error) {
+    res.status(401).json({ message: "Invalid token" });
+  }
 };
 
-
-module.exports = verifyToken;
+module.exports = verifyAdmin;
