@@ -1,185 +1,530 @@
-require('dotenv').config();
-const express = require('express');
-const User = require('../models/userModel');
-const NaturalDisaster = require('../models/natDisModel');
-const StudyCenter = require('../models/studyCenterModel');
-const Forum = require('../models/forumModel');
-const Message = require('../models/messageModel');
-const jwt = require('jsonwebtoken')
+require("dotenv").config();
+const express = require("express");
+const db = require("../config/db");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const upload = require("../config/upload");
 
 // auth
 
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { phone, password } = req.body;
 
-  if (!email || !password) {
-      // Respond with an error if email or password fields are empty
-      return res.status(400).json({ error: "Email and password cannot be empty" });
+  if (!phone || !password) {
+    return res
+      .status(400)
+      .json({ error: "Phone and password cannot be empty" });
   }
 
   try {
-      // Attempt to find the user by email
-      const user = await User.findByEmail(email);
-      if (!user) {
-          // Respond with an error if no user is found
-          return res.status(401).json({ error: "User not found" });
+    const [rows] = await db.execute("SELECT * FROM Users WHERE phone = ?", [
+      phone,
+    ]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign({ userId: user.user_id }, process.env.JWT_SECRET, {
+      expiresIn: "5h",
+    });
+
+    res.status(200).json({
+      token,
+      user: {
+        user_id: user.user_id,
+        Type: user.Type,
+        Name: user.Name,
+        Surname: user.Surname,
+        Phone: user.Phone,
+        Email: user.Email,
+        created_at: user.created_at,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.signup = async (req, res) => {
+  const { type, name, surname, phone, email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [result] = await db.execute(
+      "INSERT INTO Users (type, name, surname, phone, email, password) VALUES (?, ?, ?, ?, ?, ?)",
+      [type, name, surname, phone, email, hashedPassword]
+    );
+
+    res.status(201).json({ userId: result.insertId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const token = req.headers.authorization.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const [rows] = await db.execute("SELECT * FROM Users WHERE user_id = ?", [
+      userId,
+    ]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = rows[0];
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid old password" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await db.execute("UPDATE Users SET password = ? WHERE user_id = ?", [
+      hashedNewPassword,
+      userId,
+    ]);
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createIncident = async (req, res) => {
+  const { type, latitude, longitude, location, description } = req.body;
+  const token = req.headers.authorization.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const [result] = await db.execute(
+      "INSERT INTO Incidents (type, latitude, longitude, location, description, user_id, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+      [type, latitude, longitude, location, description, userId]
+    );
+
+    res.status(201).json({ incidentId: result.insertId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getIncidents = async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT * FROM Incidents");
+
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getIncidentById = async (req, res) => {
+  const incidentId = req.params.id;
+
+  try {
+    const [rows] = await db.execute(
+      `
+            SELECT 
+                i.incident_id, 
+                i.type, 
+                i.latitude, 
+                i.longitude, 
+                i.location, 
+                i.description, 
+                i.user_id, 
+                i.isActive, 
+                i.created_at, 
+                u.Name AS user_name, 
+                u.Surname AS user_surname 
+            FROM Incidents i
+            JOIN Users u ON i.user_id = u.user_id
+            WHERE i.incident_id = ?
+        `,
+      [incidentId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Incident not found" });
+    }
+
+    const incident = rows[0];
+    const incidentData = {
+      incident_id: incident.incident_id,
+      type: incident.type,
+      latitude: incident.latitude,
+      longitude: incident.longitude,
+      location: incident.location,
+      description: incident.description,
+      user_id: incident.user_id,
+      isActive: incident.isActive,
+      created_at: incident.created_at,
+      user_name: `${incident.user_name} ${incident.user_surname}`,
+    };
+
+    res.status(200).json(incidentData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createChatForIncident = async (req, res) => {
+  const incidentId = req.params.incident_id;
+
+  if (!incidentId) {
+    return res.status(400).json({ message: "incident_id is required" });
+  }
+
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    const [result] = await db.execute(
+      "INSERT INTO Chats (user_id, incident_id, created_at) VALUES (?, ?, NOW())",
+      [userId, incidentId]
+    );
+
+    res.status(201).json({
+      message: "Chat created and incident updated successfully",
+      chat_id: chatId,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.sendMessage = async (req, res) => {
+  const chat_id = req.params.chat_id;
+  const { message } = req.body;
+
+  if (!chat_id || !message) {
+    return res
+      .status(400)
+      .json({ message: "chat_id and message are required" });
+  }
+
+  try {
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    let senderId, recipientId;
+
+    const [chatInfo] = await db.execute(
+      "SELECT user_id, recipient_id FROM Chats WHERE chat_id = ?",
+      [chat_id]
+    );
+
+    if (chatInfo.length === 0) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+
+    const { user_id, recipient_id } = chatInfo[0];
+
+    if (userId === user_id) {
+      senderId = userId;
+      recipientId = recipient_id;
+    } else {
+      senderId = userId;
+      recipientId = user_id;
+
+      if (!recipient_id) {
+        await db.execute(
+          "UPDATE Chats SET recipient_id = ? WHERE chat_id = ?",
+          [userId, chat_id]
+        );
       }
-
-      // Check if the provided password matches the stored password
-      if (user.password !== password) {
-          // Respond with an error if the passwords do not match
-          return res.status(401).json({ error: "Incorrect password" });
-      }
-
-      // Define the payload for the JWT, including the user's ID and email
-      const payload = {
-          user_id: user.id,
-          email: user.email
-      };
-
-      // Sign the JWT with the secret key and set it to expire in 1 hour
-      const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-      // Send the token and user_id back to the client
-      res.status(200).json({ token, user_id: user.id });
-  } catch (error) {
-      // Handle any other errors that may occur
-      res.status(500).json({ error: error.message });
-  }
-};
-
-// natural disasters 
-
-exports.addDisaster = async (req, res) => {
-  try {
-    const {name, description, date_occurred} = req.body;
-    const natdis = new NaturalDisaster(name, description, date_occurred);
-    const savedDisaster = await natdis.save();
-    res.status(200).json({ disaster: natdis  });
-  } catch (error) {
-    res.status(400).json({error: error.message});
-  }
-};
-
-exports.allDisasters = async (req, res) => {
-  try {
-    const [natdisasters, _] = await NaturalDisaster.findAll();
-    res.status(200).json(natdisasters);
-  } catch (error) {
-    res.status(400).json({error: error.message});
-  }
-};
-
-// study centers
-
-exports.allStudycenters = async (req, res) => {
-  try {
-    const [studyCenters, _] = await StudyCenter.findAll();
-    res.status(200).json(studyCenters);
-  } catch (error) {
-    res.status(400).json({error: error.message});
-  }
-};
-
-// forum
-
-exports.createForum = async (req, res) => {
-  try {
-    const { user_id, title, description } = req.body;
-    const forum = new Forum(user_id, title, description);
-    const newForum = await forum.save();
-    res.status(200).json(forum);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
-
-exports.allForums = async (req, res) => {
-  try {
-    const [forums, _] = await Forum.findAll();
-    res.status(200).json(forums);
-  } catch (error) {
-  res.status(400).json({ error: error.message });
-  }
-};
-
-exports.deleteForum = async (req, res) => {
-  try {
-    const id = req.params.forumId;
-    const userId = req.user.user_id;
-    const forum = await Forum.findById(id);
-    if (!forum || forum.length === 0) {
-      return res.status(400).json({ error: "Forum not found" });
     }
 
-    const forumDetails = forum[0];
+    await db.execute(
+      "INSERT INTO Messages (chat_id, sender_id, message, sent_at) VALUES (?, ?, ?, NOW())",
+      [chat_id, userId, message]
+    );
 
-    if (forumDetails.user_id !== userId) {
-      return res.status(400).json({ error: "You do not have permission to delete this forum" });
-    }
-
-    await Message.deleteByForumId(id); 
-
-    const deleted = await Forum.deleteById(id);
-    if (!deleted) {
-      return res.status(400).json({ error: "Failed to delete forum" });
-    }
-    res.status(200).json({ message: "Forum deleted successfully" });
+    res.status(201).json({ message: "Message sent successfully" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
-// messages
+exports.getChatMessages = async (req, res) => {
+  const chatId = req.params.chat_id;
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT m.message_id, m.chat_id, m.sender_id, u.Name AS sender_name, u.Surname AS sender_surname, m.message, m.sent_at
+           FROM Messages m
+           JOIN Users u ON m.sender_id = u.user_id
+           WHERE m.chat_id = ?`,
+      [chatId]
+    );
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No messages found for this chat" });
+    }
+
+    const messages = rows.map((row) => ({
+      message_id: row.message_id,
+      chat_id: row.chat_id,
+      sender_id: row.sender_id,
+      sender_name: `${row.sender_name} ${row.sender_surname}`,
+      message: row.message,
+      sent_at: row.sent_at,
+    }));
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getChatsByIncidentId = async (req, res) => {
+  const incidentId = req.params.incident_id;
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT c.chat_id, c.user_id, u.Name AS user_name, u.Surname AS user_surname, c.recipient_id, c.created_at
+       FROM Chats c
+       JOIN Users u ON c.user_id = u.user_id
+       WHERE c.incident_id = ?`,
+      [incidentId]
+    );
+
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No chats found for this incident" });
+    }
+
+    const chats = rows.map((row) => ({
+      chat_id: row.chat_id,
+      user_id: row.user_id,
+      user_name: `${row.user_name} ${row.user_surname}`,
+      recipient_id: row.recipient_id,
+      created_at: row.created_at,
+    }));
+
+    res.status(200).json(chats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// natural disasters
+exports.addNaturalDisaster = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  const { title, description, type, photo } = req.body;
+
+  if (!title || !description || !type) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  try {
+    const result = await db.query(
+      `INSERT INTO NaturalDisasters (title, description, type, photo, user_id, created_at) 
+      VALUES (?, ?, ?, ?, ?, NOW())`,
+      [title, description, type, photo, userId]
+    );
+    res
+      .status(201)
+      .json({ message: "Natural disaster added", natDisId: result.insertId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.getAllNaturalDisasters = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM NaturalDisasters");
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.getNaturalDisasterById = async (req, res) => {
+  const natDisId = req.params.natDisId;
+
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT 
+        nd.*,
+        u.name AS creator_name,
+        u.surname AS creator_surname,
+        u.type AS creator_type
+      FROM 
+        NaturalDisasters nd
+        JOIN Users u ON nd.user_id = u.user_id
+      WHERE 
+        nd.nat_dis_id = ?
+      `,
+      [natDisId]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Natural disaster not found" });
+    }
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
 
 exports.addMessage = async (req, res) => {
   try {
-    const forum_id = req.params.forumId;
-    console.log(forum_id);
-    const { user_id, content } = req.body;
-    const message = new Message(forum_id, user_id, content);
-    const newMessage = await message.save();
-    res.status(200).json(message);
+    const token = req.header("Authorization").replace("Bearer ", "");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    const natDisId = req.params.natDisId;
+    const { content } = req.body;
+
+    if (!content || !natDisId) {
+      return res
+        .status(400)
+        .json({ message: "Content and natDisId are required" });
+    }
+
+    const result = await db.query(
+      "INSERT INTO nat_dis_messages (content, nat_dis_id, user_id, created_at) VALUES (?, ?, ?, NOW())",
+      [content, natDisId, userId]
+    );
+
+    res.status(201).json({ message: "Added the message" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
   }
 };
 
-exports.allMessagesByForum = async (req, res) => {
+exports.getAllMessagesByNatDis = async (req, res) => {
+  const natDisId = req.params.natDisId;
+
   try {
-      const messages = await Message.findByForumId(req.params.forumId);
-      res.status(200).json(messages);
+    const [rows] = await db.query(
+      `
+      SELECT 
+        ndm.*,
+        u.name AS message_user_name,
+        u.surname AS message_user_surname,
+        u.type AS message_user_type
+      FROM 
+        nat_dis_messages ndm
+        JOIN Users u ON ndm.user_id = u.user_id
+      WHERE 
+        ndm.nat_dis_id = ?
+      `,
+      [natDisId]
+    );
+
+    res.status(200).json(rows);
   } catch (error) {
-      res.status(500).send(error.message);
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
   }
 };
 
-exports.deleteMessage = async (req, res) => {
+exports.uploadCertificate = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded" });
+  }
+
   try {
-      const { forumId, messageId } = req.params;
-      const userId = req.user.user_id;
-      const message = await Message.findById(messageId);
-
-      if (!message) {
-          return res.status(404).json({ error: "Message not found" });
-      }
-
-      if (message.forum_id !== parseInt(forumId)) {
-          return res.status(400).json({ error: "Message does not belong to the specified forum" });
-      }
-
-      if (message.user_id !== userId) {
-          return res.status(403).json({ error: "You do not have permission to delete this message" });
-      }
-
-      const deleted = await Message.deleteById(messageId);
-      if (!deleted) {
-          return res.status(500).json({ error: "Failed to delete message" });
-      }
-
-      res.status(200).json({ message: "Message deleted successfully" });
+    const result = await db.query(
+      `UPDATE Users SET certificate_pdf = ? WHERE user_id = ?`,
+      [req.file.buffer, userId]
+    );
+    res.status(200).json({ message: "Certificate uploaded successfully" });
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
   }
 };
 
+exports.getCertificate = async (req, res) => {
+  const userId = req.params.user_id;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT certificate_pdf FROM Users WHERE user_id = ?`,
+      [userId]
+    );
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "User not found or no certificate available" });
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(rows[0].certificate_pdf);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.updateIncidentStatus = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  const incidentId = req.params.incident_Id;
+
+  const { reason } = req.body;
+
+  try {
+    const [userRows] = await db.query(
+      "SELECT type FROM Users WHERE user_id = ?",
+      [userId]
+    );
+    if (userRows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userType = userRows[0].type;
+
+    if (userType !== "Спасатель") {
+      return res
+        .status(403)
+        .json({ message: "User is not authorized to update incident status" });
+    }
+
+    const [incidentRows] = await db.query(
+      "UPDATE Incidents SET isActive = FALSE, reason = ?, status_changed_by = ? WHERE incident_id = ?",
+      [reason, userId, incidentId]
+    );
+
+    if (incidentRows.affectedRows === 0) {
+      return res.status(404).json({ message: "Incident not found" });
+    }
+
+    res.status(200).json({ message: "Incident status updated successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
