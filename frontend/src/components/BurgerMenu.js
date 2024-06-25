@@ -18,7 +18,11 @@ const BurgerMenu = ({ isOpen, toggleMenu }) => {
         } transition-transform duration-300`}
       >
         <nav className="flex flex-col items-start ml-4 mt-3">
-          <NavItem className="mb-4" text="Управление пользователями" />
+          <NavItem
+            className="mb-4"
+            text="Управление пользователями"
+            navigateTo={() => navigate("/admin")}
+          />
           <NavItem
             className="mb-4"
             text="Модерация контента"
