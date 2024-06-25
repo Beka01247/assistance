@@ -26,7 +26,7 @@ const ContentCard = () => {
         </p>
       </div>
       <button className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-lg w-full">
-        Отключить ситуацию
+        Отклонить ситуацию
       </button>
     </div>
   );
