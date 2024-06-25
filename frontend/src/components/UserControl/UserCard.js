@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import UserModal from "../UserModal";
+import ProfileCard from "./UserModal";
+import { useNavigate } from "react-router-dom";
 
 const UserCard = ({ user }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   return (
     <div className="p-6 bg-white border border-gray-200 rounded-lg w-[413px] h-[386px]">
       <div className="flex items-center">
@@ -10,10 +15,16 @@ const UserCard = ({ user }) => {
           className="rounded-lg w-[180px] h-[180px] mr-1"
         />
         <div className="flex flex-col w-[180px] h-[180px] ml-auto">
-          <button className="bg-[rgba(225,55,55,1)] w-[193px] h-[50px] mb-3 text-white text-sm px-4 py-2 rounded-lg">
+          <button
+            className="bg-[rgba(225,55,55,1)] w-[193px] h-[50px] mb-3 text-white text-sm px-4 py-2 rounded-lg"
+            onClick={() => setIsOpen(true)}
+          >
             Посмотреть профиль
           </button>
-          <button className="bg-[rgba(225,55,55,1)] w-[193px] h-[50px] mb-3 text-white text-sm px-4 py-2 rounded-lg">
+          <button
+            className="bg-[rgba(225,55,55,1)] w-[193px] h-[50px] mb-3 text-white text-sm px-4 py-2 rounded-lg"
+            onClick={() => navigate("/admin/user-control/activity")}
+          >
             Посмотреть активность
           </button>
           <button className=" border border-slate-300 w-[193px] h-[50px] md:border-[rgba(225,55,55,1)] bg-white text-[rgba(225,55,55,1)] text-sm px-4 py-2 rounded-lg">
@@ -38,6 +49,7 @@ const UserCard = ({ user }) => {
           Email <strong>{user.email}</strong>
         </p>
       </div>
+      {isOpen && <ProfileCard onClose={() => setIsOpen(false)} user={user} />}
     </div>
   );
 };

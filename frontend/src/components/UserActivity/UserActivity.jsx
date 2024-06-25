@@ -2,14 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import MainHeader from "../MainHeader";
 import BurgerMenu from "../BurgerMenu";
-import Themes from "./Themes/Themes";
-import ExpandedForumTheme from "./Themes/ExpandedForumTheme";
-import Back from "./../../assets/images/back";
-import Messages from "./Messages/Messages";
-import WordFilter from "./WordFilter/WordFilter";
-import Certificates from "./Certificates/Certificates";
+import Messages from "./../ContentControl/Messages/Messages";
+import Themes from "./../ContentControl/Themes/Themes";
+import AllDisasters from "../CategoryControl/All/AllDisasters";
+import Incidents from "./../IncidentModeration/Incidents";
 
-function ContentControl() {
+function UserActivity() {
   const [contents, setContents] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -41,26 +39,17 @@ function ContentControl() {
     <div className="flex flex-col">
       <MainHeader toggleMenu={toggleMenu} />
       <div className="w-full flex items-center relative">
-        {(tab === 5 || tab === 3) && (
-          <div
-            className="absolute left-32 top-8 font-medium text-lg flex items-center gap-4 cursor-pointer"
-            onClick={() => setTab((prev) => (prev === 5 ? 0 : 0))}
-          >
-            <Back />
-            Назад
-          </div>
-        )}
-        <div className="w-max flex mx-auto my-8 text-xl text-[#1F1F1F] gap-6 font-medium">
+        <div className="w-max flex mx-auto mt-8 text-lg text-[#1F1F1F] gap-6 font-medium">
           <span
             onClick={() => setTab(0)}
             className={
               "cursor-pointer px-2 " +
-              (tab === 0 || tab === 5
+              (tab === 0
                 ? `opacity-100 border-b-2 border-[#1F1F1F]`
                 : `opacity-40`)
             }
           >
-            Темы
+            Сообщения на форуме
           </span>
           <span
             onClick={() => setTab(1)}
@@ -71,7 +60,7 @@ function ContentControl() {
                 : `opacity-40`)
             }
           >
-            Сообщения
+            Статьи на форуме
           </span>
           <span
             onClick={() => setTab(2)}
@@ -82,7 +71,7 @@ function ContentControl() {
                 : `opacity-40`)
             }
           >
-            Сертификаты
+            Объявления
           </span>
           <span
             onClick={() => setTab(3)}
@@ -93,18 +82,40 @@ function ContentControl() {
                 : `opacity-40`)
             }
           >
-            Фильтрация слов
+            Сообщения о бедствии
+          </span>
+          <span
+            onClick={() => setTab(4)}
+            className={
+              "cursor-pointer px-2 " +
+              (tab === 4
+                ? `opacity-100 border-b-2 border-[#1F1F1F]`
+                : `opacity-40`)
+            }
+          >
+            Запрошенные инциденты
+          </span>
+          <span
+            onClick={() => setTab(5)}
+            className={
+              "cursor-pointer px-2 " +
+              (tab === 5
+                ? `opacity-100 border-b-2 border-[#1F1F1F]`
+                : `opacity-40`)
+            }
+          >
+            Отклики на происшествия
           </span>
         </div>
       </div>
       <BurgerMenu isOpen={menuOpen} toggleMenu={toggleMenu} />
-      {tab === 0 && <Themes setTab={setTab} />}
-      {tab === 2 && <Certificates />}
-      {tab === 1 && <Messages />}
-      {tab === 3 && <WordFilter />}
-      {tab === 5 && <ExpandedForumTheme />}
+      {tab === 0 && <Messages />}
+      {tab === 1 && <Themes />}
+      {tab === 2 && <AllDisasters />}
+      {tab === 3 && <AllDisasters />}
+      {tab === 4 && <Incidents />}
     </div>
   );
 }
 
-export default ContentControl;
+export default UserActivity;
