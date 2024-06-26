@@ -103,3 +103,15 @@ router.delete(
   adminController.deleteNaturalDisaster
 );
 router.delete("/study-centers/:centerId", adminController.deleteStudyCenter);
+
+router.post("/send-notification", async (req, res) => {
+  console.log("Received notification data:", req.body); // Log received data
+
+  // Assuming data validation happens here
+  if (!req.body.to || !req.body.body) {
+    return res.status(400).send({ error: "Missing required fields" });
+  }
+
+  // Simulate sending a notification
+  res.send({ status: "Notification sent successfully" });
+});

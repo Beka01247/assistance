@@ -5,10 +5,54 @@ import BurgerMenu from "../BurgerMenu";
 const CreateNotification = () => {
   const [activeTab, setActiveTab] = useState("Очевидец");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [expoPushToken, setExpoPushToken] = useState(""); // This needs to be set correctly
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
-  const [message, setMessage] = useState("");
+
+  const sendMessage = async () => {
+    if (!expoPushToken) {
+      alert("Expo Push Token is missing. Please set the token.");
+      return; // Stop execution if token is not set
+    }
+
+    const messageData = {
+      to: expoPushToken,
+      sound: "default",
+      title: "Заголовок",
+      body: message,
+    };
+
+    console.log("Sending message:", messageData); // Log data being sent
+
+    try {
+      const response = await fetch(
+        "http://localhost:4010/api/admin/send-notification",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(messageData),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        alert("Уведомление отправлено успешно!");
+      } else {
+        console.error("Response error:", data);
+        alert(`Не удалось отправить уведомление: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      alert(
+        "Ошибка при отправке уведомления. Проверьте консоль для подробностей."
+      );
+    }
+  };
+
   return (
     <div className="w-full h-full">
       <MainHeader toggleMenu={toggleMenu} />
@@ -17,50 +61,21 @@ const CreateNotification = () => {
           <h2 className="text-center text-lg font-semibold mb-4">
             Написать PUSH-оповещение
           </h2>
-          <div className="flex justify-center mb-4">
-            <button
-              className={`px-4 py-2 ${
-                activeTab === "Очевидец"
-                  ? "border-b-2 border-black"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab("Очевидец")}
-            >
-              Очевидец
-            </button>
-            <button
-              className={`px-4 py-2 ${
-                activeTab === "Спасатель"
-                  ? "border-b-2 border-black"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab("Спасатель")}
-            >
-              Спасатель
-            </button>
-            <button
-              className={`px-4 py-2 ${
-                activeTab === "Модерация"
-                  ? "border-b-2 border-black"
-                  : "text-gray-500"
-              }`}
-              onClick={() => setActiveTab("Модерация")}
-            >
-              Модерация
-            </button>
-          </div>
+          {/* UI Components */}
           <div className="mb-4">
             <label className="block text-gray-700">Уведомление</label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="mt-2 text-gray-700 w-full outline-none h-28 placeholder:text-wrap"
-              placeholder="Один из членов группы, устремившись к краю скалы для совершения селфи, потерял равновесие и упал в реку ниже."
+              placeholder="Введите текст уведомления"
             />
-
             <hr className="border-gray-300 mt-2" />
           </div>
-          <button className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-full w-full">
+          <button
+            className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-full w-full"
+            onClick={sendMessage}
+          >
             Отправить
           </button>
         </div>
