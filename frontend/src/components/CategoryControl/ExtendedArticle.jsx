@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import MoreVertical from "./../../assets/images/morevertical";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import MoreVertical from "./../../assets/images/morevertical";
 
-const ProfileSection = () => {
+const ProfileSection = ({ creator }) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const toggleMenu = () => {
@@ -16,7 +17,9 @@ const ProfileSection = () => {
   const handleDelete = () => {
     console.log("Delete");
   };
+
   const navigate = useNavigate();
+
   return (
     <div className="flex items-center p-4">
       <img
@@ -25,11 +28,15 @@ const ProfileSection = () => {
         className="w-10 h-10 rounded-full mr-3"
       />
       <div>
-        <div className="text-gray-900 font-semibold">Андрей Голубев</div>
-        <div className="text-gray-500 text-sm">Очевидец</div>
+        <div className="text-gray-900 font-semibold">
+          {creator.name} {creator.surname}
+        </div>
+        <div className="text-gray-500 text-sm">{creator.type}</div>
       </div>
       <div className="ml-auto relative">
-        <MoreVertical toggleMenu={toggleMenu} />
+        <div onClick={toggleMenu}>
+          <MoreVertical />
+        </div>
         {menuVisible && (
           <div className="absolute right-0 top-12 w-56 bg-white border rounded-lg shadow-xl z-10">
             <ul>
@@ -59,60 +66,64 @@ const ProfileSection = () => {
   );
 };
 
-const ContentSection = () => {
+const ContentSection = ({ content }) => {
   return (
     <div className="p-4">
       <div className="text-gray-500 text-sm mb-2 -mt-4">
-        Дата создания: 17 апр в 18:23
+        Дата создания: {new Date(content.created_at).toLocaleString()}
       </div>
       <div className="text-gray-900 font-semibold text-lg mb-2">
-        Предупреждение
+        {content.title}
       </div>
       <img
-        src="https://via.placeholder.com/400x200" // Replace with actual image URL
+        src={content.photo} // Replace with actual image URL
         alt="Content"
         className="w-full h-auto rounded-lg mb-4"
       />
-      <div className="text-gray-700">
-        Уважаемые жители Алматы,
-        <br />
-        <br />
-        Служба гражданской обороны сообщает о возможном наступлении
-        землетрясения в вашем районе. Просим вас принять необходимые меры
-        предосторожности и следовать рекомендациям экстренных служб:
-        <br />
-        <br />
-        1. Сохраните спокойствие: Помните, что спокойное поведение может спасти
-        жизнь. Попытайтесь оставаться спокойными и помогите остальным сохранить
-        хладнокровие.
-        <br />
-        2. Укройтесь под прочной мебелью: Если вы в помещении, укройтесь под
-        прочным столом или стойте под косяком двери.
-        <br />
-        3. Избегайте поврежденных объектов: Если вы находитесь на улице, не
-        входите внутрь поврежденных зданий, не подходите близко к поврежденным
-        сооружениям.
-        <br />
-        4. Следите за новостями: Если вы находитесь в безопасном месте,
-        оставайтесь там и следите за новостями.
-      </div>
+      <div className="text-gray-700">{content.description}</div>
     </div>
   );
 };
 
-const NotificationCard = () => {
+const NotificationCard = ({ content }) => {
+  const creator = {
+    name: content.creator_name,
+    surname: content.creator_surname,
+    type: content.creator_type,
+  };
+
   return (
     <div className="max-w-md mx-auto">
-      <ProfileSection />
-      <ContentSection />
+      <ProfileSection creator={creator} />
+      <ContentSection content={content} />
     </div>
   );
 };
 
-const ExtendedArticle = () => {
+const ExtendedArticle = ({ natDisId }) => {
+  const [content, setContent] = useState(null);
+
+  useEffect(() => {
+    fetchContent();
+  }, [natDisId]);
+
+  const fetchContent = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:4010/api/admin/disasters/${natDisId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setContent(response.data);
+    } catch (error) {
+      console.error("Error fetching content:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <NotificationCard />
+      {content ? <NotificationCard content={content} /> : <p>Loading...</p>}
     </div>
   );
 };

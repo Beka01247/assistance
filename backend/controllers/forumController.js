@@ -33,10 +33,16 @@ exports.createForum = async (req, res) => {
 
 exports.allForums = async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM Forums");
-    res.status(200).json(rows);
+    const query = `
+      SELECT f.forum_id, f.title, f.description, f.user_id, f.created_at, u.name, u.surname
+      FROM forums f
+      JOIN users u ON f.user_id = u.user_id
+    `;
+
+    const [results] = await db.query(query);
+    res.status(200).json(results);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching forums:", error);
     res.status(500).json({ message: "Database error" });
   }
 };

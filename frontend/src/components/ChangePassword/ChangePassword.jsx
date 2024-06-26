@@ -7,27 +7,37 @@ import Password from "../../assets/images/password";
 import User from "../../assets/images/user";
 
 function ChangePassword() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [newLogin, setNewLogin] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
   const handleSubmit = async (event) => {
-    //   event.preventDefault();
-    //   try {
-    //     const response = await axios.post(
-    //       "http://localhost:4010/api/user/login",
-    //       { email, password }
-    //     );
-    //     localStorage.setItem("token", response.data.token);
-    //     localStorage.setItem("userId", response.data.user_id);
-    //     navigate("/user/natural-disasters");
-    //   } catch (error) {
-    //     console.error("Login failed:", error);
-    //   }
+    event.preventDefault();
+    try {
+      const response = await axios.post(
+        "http://localhost:4010/api/admin/change-info",
+        {
+          oldPassword,
+          newPassword,
+          newName: newLogin,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(response.data.message);
+      navigate("/admin"); // Redirect after successful update
+    } catch (error) {
+      console.error("Failed to update details:", error);
+    }
   };
 
   return (
@@ -45,7 +55,12 @@ function ChangePassword() {
           <div className="w-[320px] h-[53px] border-b-[1px]">
             <span className="text-[rgba(125,143,157,1)]">Новый логин</span>
             <div className="flex flex-row w-full ">
-              <input className="w-full" placeholder="admin"></input>
+              <input
+                className="w-full"
+                placeholder="admin"
+                value={newLogin}
+                onChange={(e) => setNewLogin(e.target.value)}
+              />
               <div className="ml-auto mr-2">
                 <User />
               </div>
@@ -53,9 +68,30 @@ function ChangePassword() {
           </div>
         </div>
         <div className="w-[320px] h-[53px] border-b-[1px] mt-7">
+          <span className="text-[rgba(125,143,157,1)]">Старый пароль</span>
+          <div className="flex flex-row w-full ">
+            <input
+              className="w-full"
+              type="password"
+              placeholder="root"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+            <div className="ml-auto mr-2">
+              <Password />
+            </div>
+          </div>
+        </div>
+        <div className="w-[320px] h-[53px] border-b-[1px] mt-7">
           <span className="text-[rgba(125,143,157,1)]">Новый пароль</span>
           <div className="flex flex-row w-full ">
-            <input className="w-full" placeholder="root"></input>
+            <input
+              className="w-full"
+              type="password"
+              placeholder="root"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
             <div className="ml-auto mr-2">
               <Password />
             </div>

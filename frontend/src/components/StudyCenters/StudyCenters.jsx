@@ -7,7 +7,6 @@ import BurgerMenu from "../BurgerMenu";
 
 function StudyCenters() {
   const [centers, setCenters] = useState([]);
-  const [newCenterName, setNewCenterName] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -15,6 +14,7 @@ function StudyCenters() {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
+
   useEffect(() => {
     fetchStudyCenters();
   }, []);
@@ -42,7 +42,7 @@ function StudyCenters() {
     <div className="flex flex-col w-full items-center">
       <MainHeader toggleMenu={toggleMenu} />
       <BurgerMenu isOpen={menuOpen} toggleMenu={toggleMenu} />
-      {tab === 0 && <Map setTab={setTab} tab={tab} />}
+      {tab === 0 && <Map setTab={setTab} tab={tab} centers={centers} />}
       {tab === 1 && <AddStudyCenterForm setTab={setTab} tab={tab} />}
     </div>
   );

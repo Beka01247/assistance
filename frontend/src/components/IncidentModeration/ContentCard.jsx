@@ -1,6 +1,24 @@
 import React from "react";
+import axios from "axios";
 
-const ContentCard = () => {
+const ContentCard = ({ content }) => {
+  const handleBanUser = async () => {
+    try {
+      await axios.patch(
+        `http://localhost:4010/api/admin/incidents/${content.incident_id}/status`,
+        { reason: "Admin" },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      alert("User has been banned successfully");
+      console.log(content.incident_id);
+    } catch (error) {
+      console.error("Error banning user:", error);
+      alert("Failed to ban user");
+    }
+  };
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-md w-full mx-auto mb-4">
       <div className="flex items-center mb-4">
@@ -11,22 +29,29 @@ const ContentCard = () => {
         />
         <div>
           <div className="text-gray-500 text-sm">Время</div>
-          <div className="text-gray-900">01.05.24 21:21</div>
+          <div className="text-gray-900">
+            {new Date(content.created_at).toLocaleString()}
+          </div>
           <div className="text-gray-500 text-sm mt-2">Имя и фамилия</div>
           <div className="text-gray-900">Николай Григорьевич</div>
           <div className="text-gray-500 text-sm mt-2">Категория ситуации</div>
-          <div className="text-gray-900">Человек без сознания</div>
+          <div className="text-gray-900">{content.type}</div>
         </div>
       </div>
       <div className="text-gray-700 mb-4">
         Описание
-        <p>
-          Один из членов группы, устремившись к краю скалы для совершения селфи,
-          потерял равновесие и упал в реку ниже.
-        </p>
+        <p>{content.description}</p>
       </div>
-      <button className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-lg w-full">
-        Отклонить ситуацию
+      <button
+        onClick={handleBanUser}
+        disabled={!content.isActive}
+        className={`font-semibold py-2 px-4 rounded-lg w-full ${
+          content.isActive
+            ? "bg-[#E13737] text-white"
+            : "bg-white text-[#E13737] border-2 border-[#E13737]"
+        }`}
+      >
+        {content.isActive ? "Отклонить ситуацию" : "Отменен"}
       </button>
     </div>
   );

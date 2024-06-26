@@ -1,6 +1,6 @@
 import React from "react";
 
-const CertificateCard = ({ setTab }) => {
+const CertificateCard = ({ content, setTab }) => {
   return (
     <div
       className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm"
@@ -24,15 +24,15 @@ const CertificateCard = ({ setTab }) => {
           </svg>
           <span className="text-gray-700 text-xs">Имя и Фамилия</span>
         </div>
-        <span className="text-red-500 text-sm">Не просмотрено</span>
+        <span className="text-red-500 text-sm">{content.status}</span>
       </div>
       <div className="flex w-full justify-between gap-8 text-sm font-semibold">
         <div className="mb-4 w-1/2">
-          <span className="block text-gray-700">Ивана</span>
+          <span className="block text-gray-700">{content.name}</span>
           <hr className="border-gray-300 mt-1" />
         </div>
         <div className="mb-4 w-1/2">
-          <span className="block text-gray-700">Иванов</span>
+          <span className="block text-gray-700">{content.surname}</span>
           <hr className="border-gray-300 mt-1" />
         </div>
       </div>
@@ -43,7 +43,7 @@ const CertificateCard = ({ setTab }) => {
       </div>
       <div className="mb-4">
         <span className="flex justify-between text-gray-700 text-sm font-semibold">
-          77(862)529-67-46
+          {content.phone}
           <svg
             className="w-6 h-6 text-gray-500 ml-2"
             fill="none"
@@ -66,7 +66,7 @@ const CertificateCard = ({ setTab }) => {
       </div>
       <div>
         <span className="text-gray-700 text-sm flex justify-between font-semibold">
-          lunar_echoes_4267.pdf
+          {content.certificate_pdf ? "Available" : "Not available"}
           <svg
             className="w-6 h-6 text-gray-500 ml-2"
             fill="none"

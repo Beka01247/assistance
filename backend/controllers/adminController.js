@@ -98,7 +98,7 @@ exports.changeAdminDetails = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const [rows] = await db.execute(
-      "SELECT user_id, name, surname, phone, email, type, created_at, isBanned FROM Users WHERE isAdmin != true"
+      "SELECT user_id, name, surname, phone, email, type, created_at, isBanned, certificate_pdf, photo FROM Users WHERE isAdmin != true"
     );
     res.status(200).json(rows);
   } catch (error) {
@@ -124,24 +124,30 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-exports.getMessagesByUser = async (req, res) => {
+exports.getForumMessagesByUser = async (req, res) => {
   const userId = req.params.userId;
-
   try {
-    const [rows] = await db.execute(
-      "SELECT * FROM forum_messages WHERE user_id = ?",
-      [userId]
-    );
-
-    if (rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No messages found for this user" });
-    }
-
+    const query = `
+      SELECT 
+        fm.forum_message_id,
+        fm.content,
+        fm.forum_id,
+        fm.user_id,
+        fm.created_at,
+        u.name,
+        u.surname
+      FROM 
+        forum_messages fm
+      JOIN 
+        users u ON fm.user_id = u.user_id
+      WHERE 
+        fm.user_id = ?
+    `;
+    const [rows] = await db.execute(query, [userId]);
     res.status(200).json(rows);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error fetching forum messages:", error);
+    res.status(500).json({ message: "Database error" });
   }
 };
 
@@ -265,7 +271,22 @@ exports.addCenter = async (req, res) => {
 
 exports.getAllMessages = async (req, res) => {
   try {
-    const [rows] = await db.execute("SELECT * FROM forum_messages");
+    const query = `
+      SELECT 
+        fm.forum_message_id,
+        fm.content,
+        fm.forum_id,
+        fm.user_id,
+        fm.created_at,
+        u.name,
+        u.surname
+      FROM 
+        forum_messages fm
+      JOIN 
+        users u ON fm.user_id = u.user_id
+    `;
+
+    const [rows] = await db.execute(query);
     res.status(200).json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -344,6 +365,163 @@ exports.getChatMessages = async (req, res) => {
     );
 
     res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getUserStats = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const [forumMessagesCount] = await db.execute(
+      "SELECT COUNT(*) as count FROM forum_messages WHERE user_id = ?",
+      [userId]
+    );
+    const [forumsCount] = await db.execute(
+      "SELECT COUNT(*) as count FROM Forums WHERE user_id = ?",
+      [userId]
+    );
+    const [incidentsCount] = await db.execute(
+      "SELECT COUNT(*) as count FROM incidents WHERE user_id = ?",
+      [userId]
+    );
+    const [natDisMessagesCount] = await db.execute(
+      "SELECT COUNT(*) as count FROM nat_dis_messages WHERE user_id = ?",
+      [userId]
+    );
+
+    res.status(200).json({
+      forumMessages: forumMessagesCount[0].count,
+      forums: forumsCount[0].count,
+      incidents: incidentsCount[0].count,
+      natDisMessages: natDisMessagesCount[0].count,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getCertificate = async (req, res) => {
+  const userId = req.params.user_id;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT certificate_pdf FROM Users WHERE user_id = ?`,
+      [userId]
+    );
+    if (rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "User not found or no certificate available" });
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.send(rows[0].certificate_pdf);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Database error" });
+  }
+};
+
+exports.getChats = async (req, res) => {
+  const token = req.header("Authorization").replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userId = decoded.userId;
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT sc.chat_id, u.name as user_name, sc.last_message, sc.unread_messages
+       FROM SupportChats sc
+       JOIN Users u ON sc.user_id = u.user_id
+       WHERE sc.admin_id = ?`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "No chats found" });
+    }
+
+    res.status(200).json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteForumMessage = async (req, res) => {
+  const messageId = req.params.messageId;
+
+  try {
+    const [result] = await db.execute(
+      "DELETE FROM forum_messages WHERE forum_message_id = ?",
+      [messageId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    res.status(200).json({ message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteForum = async (req, res) => {
+  const forumId = req.params.forumId;
+
+  try {
+    // Delete associated messages
+    await db.execute("DELETE FROM forum_messages WHERE forum_id = ?", [
+      forumId,
+    ]);
+
+    // Delete the forum
+    const [result] = await db.execute("DELETE FROM forums WHERE forum_id = ?", [
+      forumId,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Forum not found" });
+    }
+
+    res.status(200).json({ message: "Forum deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteNaturalDisaster = async (req, res) => {
+  const natDisId = req.params.natDisId;
+
+  try {
+    const [result] = await db.execute(
+      "DELETE FROM NaturalDisasters WHERE nat_dis_id = ?",
+      [natDisId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Natural disaster not found" });
+    }
+
+    res.status(200).json({ message: "Natural disaster deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteStudyCenter = async (req, res) => {
+  const centerId = req.params.centerId;
+
+  try {
+    const [result] = await db.execute("DELETE FROM StudyCenters WHERE id = ?", [
+      centerId,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Study center not found" });
+    }
+
+    res.status(200).json({ message: "Study center deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

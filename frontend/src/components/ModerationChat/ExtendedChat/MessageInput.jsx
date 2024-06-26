@@ -1,18 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 
-const MessageInput = () => {
+const MessageInput = ({ onSendMessage }) => {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (message.trim()) {
+      onSendMessage(message);
+      setMessage("");
+    }
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md w-[30%] mx-4 mb-4">
-      <h2 className="text-gray-900 font-semibold mb-4">Сообщение</h2>
-      <textarea
-        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:border-gray-500"
-        rows="5"
-        placeholder="Lorem ipsum dolor sit amet consectetur..."
-      ></textarea>
-      <button className="bg-[#E13737] text-white font-semibold py-2 px-4 rounded-full w-full mt-4">
-        Отправить
-      </button>
-    </div>
+    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto mt-4">
+      <div className="flex items-center border rounded-lg overflow-hidden">
+        <input
+          type="text"
+          className="w-full px-4 py-2"
+          placeholder="Type a message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+        />
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2">
+          Send
+        </button>
+      </div>
+    </form>
   );
 };
 

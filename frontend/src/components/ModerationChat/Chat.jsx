@@ -1,23 +1,25 @@
 import React from "react";
 
-const Chat = ({ name, description, avatarUrl, notifications, setTab }) => {
+const Chat = ({ name, description, avatarUrl, notifications, onClick }) => {
   return (
     <div
-      className="flex items-center p-4 bg-white border-b-2 border-gray-700 w-full mb-4"
-      onClick={() => setTab(5)}
+      className="p-4 bg-white border rounded-lg shadow-lg cursor-pointer"
+      onClick={onClick}
     >
-      <img
-        src={avatarUrl}
-        alt="Profile"
-        className="w-12 h-12 rounded-full mr-4"
-      />
-      <div className="flex-grow">
-        <div className="text-gray-900 font-semibold">{name}</div>
-        <div className="text-gray-500 text-sm">{description}</div>
+      <div className="flex items-center mb-4">
+        <img
+          src={avatarUrl}
+          alt={`${name}'s avatar`}
+          className="w-10 h-10 rounded-full mr-4"
+        />
+        <div>
+          <h3 className="text-lg font-semibold">{name}</h3>
+          <p className="text-gray-600">{description}</p>
+        </div>
       </div>
       {notifications > 0 && (
-        <div className="bg-[#E13737] text-white rounded-full h-6 w-6 flex items-center justify-center ml-2">
-          {notifications}
+        <div className="text-red-500 text-sm font-semibold">
+          {notifications} new messages
         </div>
       )}
     </div>

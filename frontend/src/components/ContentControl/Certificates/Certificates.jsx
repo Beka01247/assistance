@@ -7,6 +7,7 @@ import Back from "./../../../assets/images/back";
 function Certificates() {
   const [contents, setContents] = useState([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tab, setTab] = useState(0);
 
   useEffect(() => {
     fetchContents();
@@ -19,7 +20,7 @@ function Certificates() {
   const fetchContents = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:4010/api/admin/contents",
+        "http://localhost:4010/api/admin/users",
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -29,8 +30,6 @@ function Certificates() {
       console.error("Error fetching contents:", error);
     }
   };
-
-  const [tab, setTab] = useState(0);
 
   return (
     <div className="flex flex-col">
@@ -54,54 +53,10 @@ function Certificates() {
           >
             Все
           </span>
-          <span
-            onClick={() => setTab(1)}
-            className={
-              "cursor-pointer px-2 " +
-              (tab === 1
-                ? `opacity-100 border-b-2 border-[#1F1F1F]`
-                : `opacity-40`)
-            }
-          >
-            Не просмотрено
-          </span>
-          <span
-            onClick={() => setTab(2)}
-            className={
-              "cursor-pointer px-2 " +
-              (tab === 2
-                ? `opacity-100 border-b-2 border-[#1F1F1F]`
-                : `opacity-40`)
-            }
-          >
-            Одобренно
-          </span>
-          <span
-            onClick={() => setTab(3)}
-            className={
-              "cursor-pointer px-2 " +
-              (tab === 3
-                ? `opacity-100 border-b-2 border-[#1F1F1F]`
-                : `opacity-40`)
-            }
-          >
-            Отклонено
-          </span>
-          <span
-            onClick={() => setTab(4)}
-            className={
-              "cursor-pointer px-2 " +
-              (tab === 4
-                ? `opacity-100 border-b-2 border-[#1F1F1F]`
-                : `opacity-40`)
-            }
-          >
-            Архив
-          </span>
         </div>
       </div>
-      {tab === 0 && <AllCertificates setTab={setTab} />}
-      {tab === 5 && <ExtendedCertificateCard />}
+      {tab === 0 && <AllCertificates setTab={setTab} contents={contents} />}
+      {tab === 5 && <ExtendedCertificateCard contents={contents} />}
     </div>
   );
 }

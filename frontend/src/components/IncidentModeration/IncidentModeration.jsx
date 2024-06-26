@@ -19,7 +19,7 @@ function IncidentModeration() {
   const fetchContents = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:4010/api/admin/contents",
+        "http://localhost:4010/api/admin/incidents",
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -34,7 +34,7 @@ function IncidentModeration() {
     <div className="flex flex-col">
       <MainHeader toggleMenu={toggleMenu} />
       <BurgerMenu isOpen={menuOpen} toggleMenu={toggleMenu} />
-      <Incidents />
+      <Incidents contents={contents} />
     </div>
   );
 }

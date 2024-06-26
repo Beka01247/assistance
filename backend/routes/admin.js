@@ -2,6 +2,7 @@ const express = require("express");
 const adminController = require("../controllers/adminController");
 const forumController = require("../controllers/forumController");
 const userController = require("../controllers/userController");
+const centerController = require("../controllers/centersController");
 const router = express.Router();
 const verifyAdmin = require("../middlewares/adminMid");
 
@@ -15,7 +16,7 @@ router.get("/users/:userId", verifyAdmin, adminController.getUserById);
 router.get(
   "/users/:userId/forumMessages",
   verifyAdmin,
-  adminController.getMessagesByUser
+  adminController.getForumMessagesByUser
 );
 router.get(
   "/users/:userId/forums",
@@ -33,28 +34,45 @@ router.get(
   adminController.getNaturalDisastersByUser
 );
 router.post("/centers/add", verifyAdmin, adminController.addCenter);
+router.get("/study-centers", centerController.getAllCenters);
+router.get("/study-centers/:id", centerController.getCenterById);
 router.post("/users/:userId/ban", verifyAdmin, adminController.banUser);
+router.get("/users/:userId/stats", verifyAdmin, adminController.getUserStats);
 
 // content control
 
-router.get("/forums", forumController.allForums);
-router.get("/forums/:forum_id", forumController.forumById);
-router.get("/forums/:forumId/messages", forumController.allMessagesByForum);
+router.get("/forums", verifyAdmin, forumController.allForums);
+router.get("/forums/:forum_id", verifyAdmin, forumController.forumById);
+router.get(
+  "/forums/:forumId/messages",
+  verifyAdmin,
+  forumController.allMessagesByForum
+);
 router.get("/messages", verifyAdmin, adminController.getAllMessages);
 
 // natural disasters
 
-router.post("/disasters/add-disaster", userController.addNaturalDisaster);
-router.get("/disasters", userController.getAllNaturalDisasters);
-router.get("/disasters/:natDisId", userController.getNaturalDisasterById);
+router.post(
+  "/disasters/add-disaster",
+  verifyAdmin,
+  userController.addNaturalDisaster
+);
+router.get("/disasters", verifyAdmin, userController.getAllNaturalDisasters);
+router.get(
+  "/disasters/:natDisId",
+  verifyAdmin,
+  userController.getNaturalDisasterById
+);
 router.get(
   "/disasters/:natDisId/messages",
+  verifyAdmin,
   userController.getAllMessagesByNatDis
 );
 
 // support chat
 
 router.post("/chats", verifyAdmin, adminController.createChat);
+router.get("/chats", verifyAdmin, adminController.getChats);
 router.post(
   "/chats/:chatId/messages",
   verifyAdmin,
@@ -66,4 +84,22 @@ router.get(
   adminController.getChatMessages
 );
 
+// incidents
+router.get("/incidents", verifyAdmin, userController.getIncidents);
+router.patch(
+  "/incidents/:incident_Id/status",
+  verifyAdmin,
+  userController.updateIncidentStatus
+);
+
+router.get("/user/:user_id/certificate/", adminController.getCertificate);
 module.exports = router;
+
+// delete
+router.delete("/forum/messages/:messageId", adminController.deleteForumMessage);
+router.delete("/forum/:forumId", adminController.deleteForum);
+router.delete(
+  "/natural-disasters/:natDisId",
+  adminController.deleteNaturalDisaster
+);
+router.delete("/study-centers/:centerId", adminController.deleteStudyCenter);

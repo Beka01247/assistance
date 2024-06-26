@@ -16,7 +16,10 @@ function App() {
       <Routes>
         <Route path="/" element={<AdminLogin />} />
         <Route path="/admin" element={<UserControl />} />
-        <Route path="/admin/user-control/activity" element={<UserActivity />} />
+        <Route
+          path="/admin/user-control/activity/:userId"
+          element={<UserActivity />}
+        />
         <Route path="/admin/content" element={<ContentControl />} />
         <Route path="/admin/study-centers" element={<StudyCenters />} />
         <Route path="/admin/notification" element={<CreateNotification />} />

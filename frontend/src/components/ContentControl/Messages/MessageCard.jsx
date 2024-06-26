@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import Chat from "../../../assets/images/chat";
-import Dots from "../../../assets/images/threedots";
-import MoreVertical from "../../../assets/images/morevertical";
+import React, { useState } from "react";
+import axios from "axios";
+import MoreVertical from "./../../../assets/images/morevertical";
 
-const ContentCard = ({ content, index }) => {
+const MessageCard = ({ content, onDelete }) => {
   const [menuVisible, setMenuVisible] = useState(false);
 
   const toggleMenu = () => {
@@ -14,15 +13,24 @@ const ContentCard = ({ content, index }) => {
     console.log("Edit");
   };
 
-  const handleDelete = () => {
-    console.log("Delete");
+  const handleDelete = async () => {
+    try {
+      console.log(content.forum_message_id); // Make sure this prints the correct id
+      await axios.delete(
+        `http://localhost:4010/api/admin/forum/messages/${content.forum_message_id}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      onDelete(content.forum_message_id); // Ensure this matches the id used in the delete request
+    } catch (error) {
+      console.error("Failed to delete the message:", error);
+    }
   };
-  useEffect(() => {
-    console.log("comment", content);
-  }, [content]);
+
   return (
     content && (
-      <div className="w-full h-max flex items-center relative" key={index}>
+      <div className="w-full h-max flex items-center relative">
         <div className="bg-white border w-full border-gray-200 rounded-lg px-4 py-2 flex items-center justify-between ">
           <div className="flex items-center w-full">
             <div className="flex-shrink-0 cursor-pointer self-start">
@@ -34,17 +42,21 @@ const ContentCard = ({ content, index }) => {
             </div>
             <div className="flex flex-col w-full">
               <div className="flex flex-row">
-                <h3 className="ml-2 text-sm font-semibold">{content.author}</h3>
+                <h3 className="ml-2 text-sm font-semibold">
+                  {content.name} {content.surname}
+                </h3>
                 <div className="flex flex-row items-end ml-4">
-                  <p className="text-xs text-gray-500">{content.time}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(content.created_at).toLocaleString()}
+                  </p>
                 </div>
               </div>
               <div className="flex flex-row w-full">
-                <p className="ml-3 text-xs text-gray-500">{content.role}</p>
+                <p className="ml-3 text-xs text-gray-500">{content.type}</p>
                 <div className="flex ml-auto"></div>
               </div>
               <div className="w-full">
-                <p className="-ml-8 mt-2 text-sm text-gray-500">
+                <p className=" ml-2 mt-2 text-sm text-gray-500">
                   {content.content}
                 </p>
               </div>
@@ -55,12 +67,6 @@ const ContentCard = ({ content, index }) => {
         {menuVisible && (
           <div className="absolute right-0 top-20 w-40 text-md bg-white border rounded-lg shadow-xl z-10">
             <ul>
-              <li
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-center"
-                onClick={handleEdit}
-              >
-                Редактировать
-              </li>
               <li
                 className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600 text-center"
                 onClick={handleDelete}
@@ -75,4 +81,4 @@ const ContentCard = ({ content, index }) => {
   );
 };
 
-export default ContentCard;
+export default MessageCard;

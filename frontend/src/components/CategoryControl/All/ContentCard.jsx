@@ -18,10 +18,11 @@ const ContentCard = ({ content, setTab }) => {
   const handleDelete = () => {
     console.log("Delete");
   };
+
   return (
     <div
       className="w-full h-[80px] flex items-center relative"
-      onClick={() => setTab(5)}
+      onClick={() => setTab({ type: 6, id: content.nat_dis_id })} // Ensure type 6 for ExtendedArticle
     >
       <div className="bg-white border w-full border-gray-200 rounded-lg px-4 py-2 flex items-center justify-between ">
         <div className="flex items-center w-full">
@@ -41,36 +42,14 @@ const ContentCard = ({ content, setTab }) => {
               <div className="flex ml-2 gap-4">
                 <p className="text-xs flex text-gray-500">
                   <Clock />
-                  {content.time}
+                  {new Date(content.created_at).toLocaleString()}
                 </p>
-                <p className="text-xs flex text-gray-500">
-                  <View />
-                  {content.views} просмотры
-                </p>
+                <p className="text-xs flex text-gray-500"></p>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <MoreVertical toggleMenu={toggleMenu} />
-      {menuVisible && (
-        <div className="absolute right-0 top-12 w-40 bg-white border rounded-lg shadow-xl z-10">
-          <ul>
-            <li
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-center"
-              onClick={handleEdit}
-            >
-              Редактировать
-            </li>
-            <li
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-red-600 text-center"
-              onClick={handleDelete}
-            >
-              Удалить
-            </li>
-          </ul>
-        </div>
-      )}
     </div>
   );
 };
