@@ -119,7 +119,7 @@ exports.uploadAvatar = (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const avatarPath = req.file.path;
+    const avatarPath = req.file.filename;
 
     try {
       await db.execute("UPDATE Users SET photo = ? WHERE user_id = ?", [

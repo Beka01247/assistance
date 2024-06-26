@@ -18,6 +18,7 @@ const UserCard = ({ user, onClick }) => {
           alt={`${user.name}'s photo`}
           className="rounded-lg w-[180px] h-[180px] mr-1"
         />
+
         <div className="flex flex-col w-[180px] h-[180px] ml-auto">
           <button
             className="bg-[rgba(225,55,55,1)] w-[193px] h-[50px] mb-3 text-white text-sm px-4 py-2 rounded-lg"

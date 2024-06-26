@@ -63,10 +63,11 @@ const ProfileCard = ({ onClose, user }) => {
         </button>
         <div className="flex mb-4">
           <img
-            src={currentUser.photo || "https://via.placeholder.com/100"} // Replace with actual profile image URL
-            alt="Profile"
-            className="w-52 h-52 rounded-lg mr-4"
+            src={`http://localhost:4010/uploads/avatars/${user.photo}`}
+            alt={`${user.name}'s photo`}
+            className="rounded-lg w-[180px] h-[180px] mr-1"
           />
+
           <div className="mr-4">
             <div className="flex gap-32 items-center justify-between">
               <div className="text-gray-900 font-semibold">Тип</div>
